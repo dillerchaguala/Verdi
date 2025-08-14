@@ -1,0 +1,17 @@
+export default function Nav() {
+  return (
+    <header className="flex items-center justify-between px-6 py-4">
+      <div className="flex items-center">
+        <div className="h-40 w-40 overflow-hidden">
+          <img src="/logo.png" alt="Logo Verdu Helados" className="h-full w-full object-contain" />
+        </div>
+      </div>
+      <nav className="hidden gap-10 text-base font-medium text-teal-400 md:flex items-start -mt-2">
+        <a href="#" className="hover:text-pink-600 transition-colors hover:scale-105 transform">Inicio</a>
+        <a href="#" className="hover:text-pink-600 transition-colors hover:scale-105 transform">Eventos</a>
+        <a href="#" className="hover:text-pink-600 transition-colors hover:scale-105 transform">Blog</a>
+        <a href="#" className="hover:text-pink-600 transition-colors hover:scale-105 transform">Nosotros </a>
+      </nav>
+    </header>
+  )
+}
