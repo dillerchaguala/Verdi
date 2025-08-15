@@ -367,19 +367,48 @@ export default function IceCreamLanding() {
       </div>
 
       {/* CONTENEDOR DE PRODUCTOS */}
-      <div className="w-full bg-gradient-to-b from-lime-50 via-white to-lime-50 py-24">
+      <div className="w-full bg-gradient-to-b from-lime-50 via-white to-lime-50 py-6 pb-0">
         <div className="w-full max-w-[1440px] mx-auto">
           <div className="text-center mb-16">
             <div className="relative w-full">
+              {/* Imagen Verdi en diagonal, esquina superior izquierda */}
+              <img
+                src="/verdi.png"
+                alt="Verdi verdulería"
+                className="absolute left-0 top-0 z-30 object-contain drop-shadow-xl"
+        style={{
+          width: "270px",
+          height: "270px",
+          transform: "rotate(-18deg) translate(-30px, -120px)",
+          maxHeight: "270px",
+          filter: "drop-shadow(0 26px 26px rgb(20 184 166 / 0.26))",
+          animation: "verdiFloat 3.2s ease-in-out infinite"
+        }}
+              />
               <h2 className="text-6xl md:text-7xl font-['Pacifico'] text-teal-400 mb-4 text-right absolute right-0 top-0 flex flex-row-reverse gap-4" style={{maxWidth: '700px'}}>
-                <span>Productos</span>
-                <span>Nuestros</span>
+              <style>{`
+                @keyframes verdiFloat {
+                  0%, 100% { transform: rotate(-18deg) translate(10px, -190px); }
+                  50% { transform: rotate(-18deg) translate(10px, -210px) scale(1.04); }
+                }
+              `}</style>
+                <span style={{animation: 'slideInRight 0.7s cubic-bezier(0.4,0,0.2,1)'}}>Productos</span>
+                <span style={{animation: 'slideInRight 1.1s cubic-bezier(0.4,0,0.2,1)'}}>Nuestros</span>
               </h2>
-              <p className="text-pink-600 font-['Righteous'] text-lg text-right absolute right-0 top-24" style={{maxWidth: '700px'}}>
-                <span>la naturaleza</span>
-                <span>de sabor el Descubre</span>
+              <p className="text-pink-600 font-['Righteous'] text-lg text-right absolute right-0 top-24 flex flex-row-reverse gap-2" style={{maxWidth: '700px'}}>
+                <span style={{animation: 'slideInRight 0.8s cubic-bezier(0.4,0,0.2,1)'}}>naturaleza</span>
+                <span style={{animation: 'slideInRight 1.2s cubic-bezier(0.4,0,0.2,1)'}}>de</span>
+                <span style={{animation: 'slideInRight 1.4s cubic-bezier(0.4,0,0.2,1)'}}>sabor</span>
+                <span style={{animation: 'slideInRight 1.6s cubic-bezier(0.4,0,0.2,1)'}}>el</span>
+                <span style={{animation: 'slideInRight 1.8s cubic-bezier(0.4,0,0.2,1)'}}>Descubre</span>
               </p>
               <div style={{height: '110px'}}></div>
+              <style>{`
+                @keyframes slideInRight {
+                  0% { opacity: 0; transform: translateX(80px); }
+                  100% { opacity: 1; transform: translateX(0); }
+                }
+              `}</style>
             </div>
           </div>
           <style>{`
@@ -403,7 +432,7 @@ export default function IceCreamLanding() {
               100% { transform: rotateY(8deg) scale(1.04); }
             }
           `}</style>
-          <div className="flex flex-col md:flex-row items-stretch justify-center gap-0 max-w-5xl mx-auto">
+          <div className="flex flex-wrap items-stretch justify-center gap-4 md:gap-0 max-w-5xl mx-auto px-2 md:px-0">
             {[ 
               {
                 title: "Helado Natural",
@@ -474,25 +503,7 @@ export default function IceCreamLanding() {
       </div>
       
       {/* Verdi Mascota */}
-      <div className="relative w-full py-8 overflow-hidden bg-gradient-to-b from-lime-50 to-white">
-        <div className="max-w-[1440px] mx-auto relative min-h-[120px] flex items-center justify-center">
-          {/* Contenedor de la imagen con efecto 3D compacto */}
-          <div className="relative flex items-center justify-center p-0" style={{height: '120px'}}>
-            {/* Imagen principal reducida */}
-            <img
-              src="/verdi.png"
-              alt="Verdi verdulería"
-              className="object-contain transform transition-all duration-500 animate-bounce-slow hover:scale-105"
-              style={{
-                width: "120px",
-                height: "120px",
-                filter: "drop-shadow(0 12px 12px rgb(20 184 166 / 0.18))",
-                maxHeight: "120px"
-              }}
-            />
-          </div>
-        </div>
-      </div>
+      {/* Eliminada la imagen Verdi del footer */}
 
       <Footer />
       </div>
