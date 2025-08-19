@@ -10,7 +10,25 @@ export default function Footer() {
         `,
         backgroundSize: '180px 180px'
       }}></div>
-      <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-start gap-8">
+      <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-start gap-8 relative">
+        {/* Imagen decorativa de Verdi con animación 3D en la esquina inferior derecha */}
+        <div className="hidden md:block absolute right-0 bottom-0 z-20" style={{pointerEvents: 'none'}}>
+          <img
+            src="/verdi.png"
+            alt="Verdi decorativo"
+            className="w-52 h-52 object-contain drop-shadow-2xl animate-verdiFloat3d"
+            style={{filter: 'drop-shadow(0 18px 32px rgba(20,184,166,0.18))', transform: 'rotateY(12deg) scale(1.08)'}}
+          />
+          <style>{`
+            @keyframes verdiFloat3d {
+              0%, 100% { transform: rotateY(12deg) scale(1.08) translateY(0); }
+              50% { transform: rotateY(-12deg) scale(1.12) translateY(-18px); }
+            }
+            .animate-verdiFloat3d {
+              animation: verdiFloat3d 4.2s ease-in-out infinite;
+            }
+          `}</style>
+        </div>
         {/* Información principal alineada a la izquierda */}
         <div className="flex-1 min-w-[260px] text-left text-teal-700">
           <div className="bg-white/80 rounded-2xl shadow-2xl p-8 backdrop-blur-md animate-fadeInUp">
@@ -30,10 +48,10 @@ export default function Footer() {
         </div>
         {/* Mapa a la derecha */}
         <div className="flex-1 min-w-[320px] flex justify-end items-center">
-          <div className="rounded-2xl overflow-hidden border-2 border-teal-100 shadow-2xl w-[340px] h-[200px] bg-white/90 animate-fadeInUp">
+          <div className="mt-8 rounded-2xl overflow-hidden border-2 border-teal-100 shadow-2xl w-[420px] h-[270px] bg-white/90 animate-fadeInUp" style={{ marginLeft: '-32px' }}>
             <iframe
               title="Mapa Sibaté"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=-74.265%2C4.480%2C-74.250%2C4.490&amp;layer=mapnik"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=-74.259%2C4.484%2C-74.255%2C4.488&amp;layer=mapnik&marker=4.486,-74.257"
               className="w-full h-full border-0"
               allowFullScreen
               loading="lazy"

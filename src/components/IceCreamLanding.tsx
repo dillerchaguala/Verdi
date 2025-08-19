@@ -46,9 +46,173 @@ export default function IceCreamLanding() {
     return () => clearInterval(timer);
   }, [slides.length]);
 
+  useEffect(() => {
+    // Fondo animado tipo helado verde con más detalles
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = `
+      @keyframes moverFondo {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      .bg-helado-animado {
+        background: linear-gradient(270deg, #7ed957, #a8eb12, #7ed957, #d0ffb7, #b6e388, #a8eb12, #7ed957);
+        background-size: 800% 800%;
+        animation: moverFondo 18s ease-in-out infinite;
+        position: relative;
+        overflow: hidden;
+      }
+      .bubble-helado {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.18;
+        filter: blur(2px);
+        animation: bubbleFloat 8s ease-in-out infinite;
+      }
+      @keyframes bubbleFloat {
+        0%, 100% { transform: translateY(0) scale(1); opacity: 0.18; }
+        50% { transform: translateY(-40px) scale(1.12); opacity: 0.28; }
+      }
+      .shine-helado {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.12;
+        filter: blur(12px);
+        animation: shinePulse 6s ease-in-out infinite;
+      }
+      @keyframes shinePulse {
+        0%, 100% { opacity: 0.12; }
+        50% { opacity: 0.22; }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+    return () => styleSheet.remove();
+  }, []);
+
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-lime-50 to-white" style={{ backgroundImage: 'url(/fondo-global.png)', backgroundRepeat: 'repeat', backgroundSize: 'cover' }}>
-      <div className="w-full max-w-[1440px] mx-auto px-6 md:px-10">
+    <div className="min-h-screen w-full overflow-x-hidden relative">
+      {/* Decoraciones temáticas en las esquinas */}
+      <img src="/zanahoria.png" alt="Zanahoria decorativa" className="fixed left-0 top-0 w-24 h-24 z-30 opacity-30 pointer-events-none" style={{transform: 'rotate(-18deg) translate(-10px, -10px)'}} />
+      {/* Blob animado tipo pulse con gradiente morado-azul detrás del helado decorativo */}
+      <div className="fixed left-0 bottom-0 z-20 flex items-end justify-start pointer-events-none" style={{width: '320px', height: '320px'}}>
+        <div className="background-shape-pulse" style={{position: 'absolute', left: 0, bottom: 0, width: '320px', height: '320px', borderRadius: '50%', zIndex: 1}}></div>
+      </div>
+      <img src="/verdi.png" alt="Verdi decorativa" className="fixed right-0 bottom-0 w-24 h-24 z-30 opacity-30 pointer-events-none" style={{transform: 'rotate(12deg) translate(10px, 10px)'}} />
+
+      {/* Eliminado el blob rosa de la esquina superior izquierda */}
+      {/* Imagen del helado decorativo centrada sobre el fondo animado */}
+      <div className="fixed left-0 bottom-0 z-30 flex items-end justify-start pointer-events-none" style={{width: '520px', height: '520px'}}>
+        <img
+          src="/helado-decorativo.png"
+          alt="Helado decorativo"
+          className="relative z-10 object-contain drop-shadow-2xl animate-heladoDecorativo3d"
+          style={{width: '620px', height: '620px', marginBottom: '-40px', marginLeft: '-90px', filter: 'drop-shadow(0 68px 120px rgba(180,0,255,0.38))', borderRadius: '80px', transform: 'rotateZ(6deg) rotateY(4deg)'}}
+        />
+        <style>{`
+          @keyframes heladoDecorativo3d {
+            0%, 100% { transform: rotateZ(6deg) rotateY(4deg) scale(1.12) translateY(0); }
+            50% { transform: rotateZ(12deg) rotateY(10deg) scale(1.18) translateY(-48px); }
+          }
+          .animate-heladoDecorativo3d {
+            animation: heladoDecorativo3d 4.2s ease-in-out infinite;
+          }
+        `}</style>
+      </div>
+      {/* Blob animado tipo pulse con gradiente morado-azul detrás del helado-auyama */}
+      <div className="fixed right-0 top-0 z-20 flex items-start justify-end pointer-events-none" style={{width: '320px', height: '320px'}}>
+        <div className="background-shape-pulse" style={{position: 'absolute', right: 0, top: 0, width: '320px', height: '320px', borderRadius: '50%', zIndex: 1}}></div>
+      </div>
+      {/* Imagen del helado-auyama centrada sobre el fondo animado */}
+      <div className="fixed right-0 top-0 z-30 flex items-start justify-end pointer-events-none" style={{width: '320px', height: '320px'}}>
+        <img
+          src="/helado-auyama.png"
+          alt="Helado decorativo"
+          className="relative z-10 w-[140px] h-[140px] object-contain drop-shadow-2xl animate-heladoFloat3d"
+          style={{marginTop: '60px', marginRight: '90px', filter: 'drop-shadow(0 18px 32px rgba(255,180,0,0.18))', transform: 'rotateY(12deg) scale(1.04)'}}
+        />
+      </div>
+      <style>{`
+        @keyframes heladoFloat3d {
+          0%, 100% { transform: rotateY(12deg) scale(1.08) translateY(0); }
+          50% { transform: rotateY(-12deg) scale(1.12) translateY(-18px); }
+        }
+        .animate-heladoFloat3d {
+          animation: heladoFloat3d 4.2s ease-in-out infinite;
+        }
+        /* Fondo animado pulse detrás del helado decorativo */
+        .background-shape-pulse {
+          background: radial-gradient(circle at 60% 40%, #6d28d9 0%, #312e81 60%, #2563eb 100%);
+          opacity: 0.32;
+          filter: blur(2px);
+          animation: pulseBg 3.2s ease-in-out infinite;
+        }
+        @keyframes pulseBg {
+          0%, 100% { transform: scale(1); opacity: 0.32; }
+          50% { transform: scale(1.12); opacity: 0.44; }
+        }
+        @media (max-width: 900px) {
+          .fixed.left-0.top-0.z-20.flex.items-start.justify-start.pointer-events-none,
+          .fixed.left-0.bottom-0.z-20.flex.items-end.justify-start.pointer-events-none,
+          .fixed.right-0.top-0.z-20.flex.items-start.justify-end.pointer-events-none {
+            width: 160px !important;
+            height: 160px !important;
+          }
+          .animate-heladoFloat3d {
+            width: 70px !important;
+            height: 70px !important;
+            margin-top: 30px !important;
+            margin-left: 30px !important;
+            margin-bottom: 30px !important;
+            margin-right: 30px !important;
+          }
+          .background-shape-pulse {
+            width: 160px !important;
+            height: 160px !important;
+          }
+        }
+      `}</style>
+
+
+      {/* Responsive extra: decoraciones solo visibles en pantallas md+ */}
+      <style>{`
+        @media (max-width: 768px) {
+          .fixed.w-24.h-24.z-30.opacity-30.pointer-events-none { display: none; }
+          .shine-helado { display: none; }
+        }
+        @keyframes fadeInUp { 0% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: translateY(0); } }
+      `}</style>
+      {/* Ola superior, color suave, animación igual a la ola inferior */}
+      <div style={{position: 'fixed', left: 0, top: 0, width: '100vw', height: '400px', zIndex: 0, pointerEvents: 'none', overflow: 'hidden'}}>
+        <svg className="wave-bg-top" viewBox="0 0 1440 320" preserveAspectRatio="none" style={{position: 'absolute', width: '200%', height: '400px', left: 0, top: 0, transform: 'scaleY(-1)'}}>
+          <path d="M0,96L80,112C160,128,320,160,480,176C640,192,800,192,960,165.3C1120,139,1280,85,1360,58.7L1440,32L1440,320L0,320Z" fill="#d0ffb7" opacity="0.5" />
+        </svg>
+        <style>{`
+          .wave-bg-top path {
+            animation: moverOnda 10s linear infinite;
+          }
+          @keyframes moverOnda {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+        `}</style>
+      </div>
+      {/* Ola inferior, animación hacia la derecha */}
+      <div style={{position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', zIndex: 0, pointerEvents: 'none', overflow: 'hidden'}}>
+        <svg className="wave-bg" viewBox="0 0 1440 320" preserveAspectRatio="none" style={{position: 'absolute', width: '200%', height: '100%', left: 0, bottom: 0}}>
+          <path d="M0,160L80,176C160,192,320,224,480,240C640,256,800,256,960,229.3C1120,203,1280,149,1360,122.7L1440,96L1440,320L0,320Z" fill="#a8eb12" opacity="0.6" />
+        </svg>
+        <style>{`
+          .wave-bg path {
+            animation: moverOnda 10s linear infinite;
+          }
+          @keyframes moverOnda {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+        `}</style>
+      </div>
+      {/* ...el resto del contenido permanece igual... */}
+      <div className="w-full max-w-[1440px] mx-auto px-6 md:px-10" style={{position: 'relative', zIndex: 2}}>
         <Nav />
         <section className="relative h-[500px] md:h-[600px] xl:h-[700px] overflow-hidden shadow-2xl">
           <img 
@@ -433,7 +597,7 @@ export default function IceCreamLanding() {
             }
           `}</style>
           <div className="flex flex-wrap items-stretch justify-center gap-4 md:gap-0 max-w-5xl mx-auto px-2 md:px-0">
-            {[ 
+            {[
               {
                 title: "Helado Natural",
                 description: "Sin conservantes artificiales",
@@ -453,16 +617,6 @@ export default function IceCreamLanding() {
                 title: "Sin Azúcar",
                 description: "Endulzado naturalmente",
                 icon: "🍯"
-              },
-              {
-                title: "Vegano",
-                description: "Apto para todos",
-                icon: "🌱"
-              },
-              {
-                title: "Fresco y Local",
-                description: "Ingredientes de la región",
-                icon: "🧺"
               }
             ].map((item, i) => (
               <article
@@ -505,6 +659,7 @@ export default function IceCreamLanding() {
       {/* Verdi Mascota */}
       {/* Eliminada la imagen Verdi del footer */}
 
+      <div className="w-full" style={{ height: '64px' }}></div>
       <Footer />
       </div>
       {/* Fin del contenedor principal */}
