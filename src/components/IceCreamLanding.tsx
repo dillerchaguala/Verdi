@@ -2,6 +2,14 @@ import Nav from "./Nav";
 import Footer from "./Footer";
 import { useState, useEffect } from "react";
 
+// Tipo para producto
+type Product = {
+  _id?: string;
+  title: string;
+  description: string;
+  image?: string;
+};
+
 // Estilos globales para las animaciones
 const styles = `
   @keyframes scoopFloat {
@@ -11,6 +19,79 @@ const styles = `
 `;
 
 export default function IceCreamLanding() {
+  // Estado de productos
+  const [products, setProducts] = useState<Product[]>([]);
+  // Cargar productos desde el backend al iniciar
+  useEffect(() => {
+    fetch('http://localhost:4000/api/productos')
+      .then(res => res.json())
+      .then(data => setProducts(data));
+  }, []);
+  // Estado de admin
+  const [isAdmin, setIsAdmin] = useState(() => {
+    return localStorage.getItem('verduadmin') === 'true';
+  });
+
+  useEffect(() => {
+    const loginHandler = () => {
+      setIsAdmin(true);
+      localStorage.setItem('verduadmin', 'true');
+    };
+    const logoutHandler = () => {
+      setIsAdmin(false);
+      localStorage.setItem('verduadmin', 'false');
+    };
+    window.addEventListener('verduadmin-login', loginHandler);
+    window.addEventListener('verduadmin-logout', logoutHandler);
+    return () => {
+      window.removeEventListener('verduadmin-login', loginHandler);
+      window.removeEventListener('verduadmin-logout', logoutHandler);
+    };
+  }, []);
+  // Estado para el carrito de compras: lista de productos y cantidades
+  const [cart, setCart] = useState<{title: string, cantidad: number}[]>([]);
+
+  // Añadir producto al carrito
+  const addToCart = (title: string) => {
+    setCart(prev => {
+      const idx = prev.findIndex(p => p.title === title);
+      if (idx >= 0) {
+        const nuevo = [...prev];
+        nuevo[idx].cantidad += 1;
+        return nuevo;
+      }
+      return [...prev, {title, cantidad: 1}];
+    });
+  };
+
+  // Quitar producto del carrito
+  const removeFromCart = (title: string) => {
+    setCart(prev => {
+      const idx = prev.findIndex(p => p.title === title);
+      if (idx >= 0) {
+        const nuevo = [...prev];
+        if (nuevo[idx].cantidad > 1) {
+          nuevo[idx].cantidad -= 1;
+          return nuevo;
+        } else {
+          nuevo.splice(idx, 1);
+          return nuevo;
+        }
+      }
+      return prev;
+    });
+  };
+
+  // Cantidad total en el carrito
+  const cartItems = cart.reduce((acc, p) => acc + p.cantidad, 0);
+  // Estado para mostrar el modal del carrito
+  const [showCart, setShowCart] = useState(false);
+
+  useEffect(() => {
+    const openCart = () => setShowCart(true);
+    window.addEventListener('verdu-cart-open', openCart);
+    return () => window.removeEventListener('verdu-cart-open', openCart);
+  }, []);
   // Inyectar estilos
   useEffect(() => {
     const styleSheet = document.createElement("style");
@@ -91,83 +172,91 @@ export default function IceCreamLanding() {
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden relative">
+      {/* Botón flotante de WhatsApp */}
+      <a
+        href="https://wa.me/573114877766"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-8 left-8 z-50 flex items-center justify-center bg-green-500 hover:bg-green-600 shadow-2xl rounded-full p-3 ring-2 ring-green-300 transition-all duration-300"
+        style={{ minWidth: 64, minHeight: 64 }}
+        aria-label="WhatsApp"
+      >
+        <svg viewBox="0 0 32 32" fill="currentColor" className="w-8 h-8 text-white">
+          <path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.668 4.624 1.934 6.6L4 29l7.6-1.934A12.94 12.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm0 22c-1.98 0-3.91-.52-5.6-1.5l-.4-.23-4.52 1.15 1.15-4.52-.23-.4A9.96 9.96 0 016 15c0-5.514 4.486-10 10-10s10 4.486 10 10-4.486 10-10 10zm5.07-7.75c-.28-.14-1.65-.81-1.9-.9-.25-.09-.43-.14-.61.14-.18.28-.7.9-.86 1.08-.16.18-.32.2-.6.07-.28-.14-1.18-.44-2.25-1.4-.83-.74-1.39-1.65-1.55-1.93-.16-.28-.02-.43.12-.57.12-.12.28-.32.42-.48.14-.16.18-.28.28-.46.09-.18.05-.34-.02-.48-.07-.14-.61-1.47-.84-2.01-.22-.54-.45-.47-.61-.48-.16-.01-.34-.01-.52-.01-.18 0-.48.07-.73.34-.25.27-.97.95-.97 2.32s.99 2.68 1.13 2.87c.14.18 1.95 2.98 4.74 4.05.66.28 1.18.45 1.58.58.66.21 1.26.18 1.73.11.53-.08 1.65-.67 1.88-1.32.23-.65.23-1.21.16-1.32-.07-.11-.25-.18-.53-.32z"/>
+        </svg>
+      </a>
+      {/* Botón flotante de carrito */}
+      {cartItems > 0 && (
+        <button
+          className="fixed bottom-8 right-8 z-50 flex items-center justify-center bg-white shadow-2xl rounded-full p-2 ring-2 ring-teal-300 hover:scale-110 transition-all duration-300"
+          style={{ minWidth: 64, minHeight: 64 }}
+          onClick={() => setShowCart(true)}
+        >
+          <img src="/carrito.png" alt="Carrito" className="w-10 h-10 object-contain" />
+          <span className="absolute top-2 right-2 bg-pink-500 text-white text-xs font-bold rounded-full px-2 py-1 shadow-lg" style={{ minWidth: 24, minHeight: 24, textAlign: 'center' }}>{cartItems}</span>
+        </button>
+      )}
+      {/* Modal de carrito de compras */}
+      {showCart && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40" onClick={() => setShowCart(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full relative flex flex-col items-center" onClick={e => e.stopPropagation()}>
+            <button className="absolute top-2 right-2 text-gray-500 hover:text-pink-600 text-2xl font-bold" onClick={() => setShowCart(false)}>&times;</button>
+            <h2 className="text-3xl font-['Pacifico'] text-teal-400 mb-4">Carrito de compras</h2>
+            <p className="text-lg text-teal-600 mb-4">Tienes <span className="font-bold text-pink-600">{cartItems}</span> producto(s) en el carrito.</p>
+            <div className="w-full mb-4">
+              {cart.length === 0 ? (
+                <p className="text-center text-gray-500">No hay productos en el carrito.</p>
+              ) : (
+                <ul className="divide-y divide-teal-100">
+                  {cart.map((p, i) => (
+                    <li key={i} className="flex items-center justify-between py-2">
+                      <span className="font-['Righteous'] text-teal-700">{p.title}</span>
+                      <div className="flex items-center gap-2">
+                        <button className="bg-pink-400 text-white rounded-full px-2 py-1 font-bold hover:bg-pink-600" onClick={() => removeFromCart(p.title)}>-</button>
+                        <span className="font-bold text-lg text-teal-600">{p.cantidad}</span>
+                        <button className="bg-teal-400 text-white rounded-full px-2 py-1 font-bold hover:bg-teal-600" onClick={() => addToCart(p.title)}>+</button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <button className="rounded-full bg-gradient-to-r from-pink-400 to-teal-400 px-8 py-3 text-base font-['Righteous'] text-white shadow-lg hover:scale-105 transition-all duration-300 mt-4">Comprar</button>
+          </div>
+        </div>
+      )}
       {/* Decoraciones temáticas en las esquinas */}
-      <img src="/zanahoria.png" alt="Zanahoria decorativa" className="fixed left-0 top-0 w-24 h-24 z-30 opacity-30 pointer-events-none" style={{transform: 'rotate(-18deg) translate(-10px, -10px)'}} />
-      {/* Blob animado tipo pulse con gradiente morado-azul detrás del helado decorativo */}
-      <div className="fixed left-0 bottom-0 z-20 flex items-end justify-start pointer-events-none" style={{width: '320px', height: '320px'}}>
-        <div className="background-shape-pulse" style={{position: 'absolute', left: 0, bottom: 0, width: '320px', height: '320px', borderRadius: '50%', zIndex: 1}}></div>
-      </div>
-      <img src="/verdi.png" alt="Verdi decorativa" className="fixed right-0 bottom-0 w-24 h-24 z-30 opacity-30 pointer-events-none" style={{transform: 'rotate(12deg) translate(10px, 10px)'}} />
-
-      {/* Eliminado el blob rosa de la esquina superior izquierda */}
-      {/* Imagen del helado decorativo centrada sobre el fondo animado */}
-      <div className="fixed left-0 bottom-0 z-30 flex items-end justify-start pointer-events-none" style={{width: '520px', height: '520px'}}>
-        <img
-          src="/helado-decorativo.png"
-          alt="Helado decorativo"
-          className="relative z-10 object-contain drop-shadow-2xl animate-heladoDecorativo3d"
-          style={{width: '620px', height: '620px', marginBottom: '-40px', marginLeft: '-90px', filter: 'drop-shadow(0 68px 120px rgba(180,0,255,0.38))', borderRadius: '80px', transform: 'rotateZ(6deg) rotateY(4deg)'}}
-        />
-        <style>{`
-          @keyframes heladoDecorativo3d {
-            0%, 100% { transform: rotateZ(6deg) rotateY(4deg) scale(1.12) translateY(0); }
-            50% { transform: rotateZ(12deg) rotateY(10deg) scale(1.18) translateY(-48px); }
-          }
-          .animate-heladoDecorativo3d {
-            animation: heladoDecorativo3d 4.2s ease-in-out infinite;
-          }
-        `}</style>
-      </div>
-      {/* Blob animado tipo pulse con gradiente morado-azul detrás del helado-auyama */}
-      <div className="fixed right-0 top-0 z-20 flex items-start justify-end pointer-events-none" style={{width: '320px', height: '320px'}}>
-        <div className="background-shape-pulse" style={{position: 'absolute', right: 0, top: 0, width: '320px', height: '320px', borderRadius: '50%', zIndex: 1}}></div>
-      </div>
-      {/* Imagen del helado-auyama centrada sobre el fondo animado */}
-      <div className="fixed right-0 top-0 z-30 flex items-start justify-end pointer-events-none" style={{width: '320px', height: '320px'}}>
-        <img
-          src="/helado-auyama.png"
-          alt="Helado decorativo"
-          className="relative z-10 w-[140px] h-[140px] object-contain drop-shadow-2xl animate-heladoFloat3d"
-          style={{marginTop: '60px', marginRight: '90px', filter: 'drop-shadow(0 18px 32px rgba(255,180,0,0.18))', transform: 'rotateY(12deg) scale(1.04)'}}
-        />
-      </div>
+      <img src="/fresa-marco.png" alt="Fresa decorativa" className="fixed left-0 top-0 z-30 opacity-30 pointer-events-none" style={{width: '160px', height: '160px', transform: 'rotate(-12deg) translate(-18px, -18px)'}} />
+      <img src="/fresa2.png" alt="Fresa decorativa 2" className="fixed right-0 bottom-0 z-30 opacity-30 pointer-events-none" style={{width: '160px', height: '160px', transform: 'rotate(10deg) translate(18px, 18px)'}} />
+      {/* Imagen de helado decorativo: igual que las olas, siempre detrás */}
+      <div style={{
+        position: 'fixed',
+        left: '-80px',
+        bottom: 0,
+        zIndex: 1,
+        width: '520px',
+        height: '520px',
+        pointerEvents: 'none',
+        background: "url('/helado-decorativo.png') no-repeat left bottom",
+        backgroundSize: '620px 620px',
+        borderRadius: '80px',
+        filter: 'drop-shadow(0 68px 120px rgba(180,0,255,0.38))',
+        animation: 'heladoDecorativo3d 4.2s ease-in-out infinite',
+      }} />
       <style>{`
-        @keyframes heladoFloat3d {
-          0%, 100% { transform: rotateY(12deg) scale(1.08) translateY(0); }
-          50% { transform: rotateY(-12deg) scale(1.12) translateY(-18px); }
+        @keyframes heladoDecorativo3d {
+          0%, 100% { transform: rotateZ(6deg) rotateY(4deg) scale(1.12) translateY(0); }
+          50% { transform: rotateZ(12deg) rotateY(10deg) scale(1.18) translateY(-48px); }
         }
-        .animate-heladoFloat3d {
-          animation: heladoFloat3d 4.2s ease-in-out infinite;
-        }
-        /* Fondo animado pulse detrás del helado decorativo */
-        .background-shape-pulse {
-          background: radial-gradient(circle at 60% 40%, #6d28d9 0%, #312e81 60%, #2563eb 100%);
-          opacity: 0.32;
-          filter: blur(2px);
-          animation: pulseBg 3.2s ease-in-out infinite;
-        }
-        @keyframes pulseBg {
-          0%, 100% { transform: scale(1); opacity: 0.32; }
-          50% { transform: scale(1.12); opacity: 0.44; }
-        }
-        @media (max-width: 900px) {
-          .fixed.left-0.top-0.z-20.flex.items-start.justify-start.pointer-events-none,
-          .fixed.left-0.bottom-0.z-20.flex.items-end.justify-start.pointer-events-none,
-          .fixed.right-0.top-0.z-20.flex.items-start.justify-end.pointer-events-none {
-            width: 160px !important;
-            height: 160px !important;
-          }
-          .animate-heladoFloat3d {
-            width: 70px !important;
-            height: 70px !important;
-            margin-top: 30px !important;
-            margin-left: 30px !important;
-            margin-bottom: 30px !important;
-            margin-right: 30px !important;
-          }
-          .background-shape-pulse {
-            width: 160px !important;
-            height: 160px !important;
+        @media (max-width: 768px) {
+          .helado-decorativo-bg {
+            left: -40px !important;
+            width: 100vw !important;
+            height: 320px !important;
+            background-position: left bottom !important;
+            background-size: 320px 320px !important;
+            filter: drop-shadow(0 24px 48px rgba(180,0,255,0.18));
+            animation: none !important;
           }
         }
       `}</style>
@@ -240,40 +329,7 @@ export default function IceCreamLanding() {
                 <div className="mx-auto max-w-xl">
                   <div className="mt-0">
                     <div className="flex flex-col items-center relative">
-                      {/* Partículas decorativas */}
-                      {/* Primera fila */}
-                      <div className="absolute -top-20 -left-20 w-16 h-16 animate-float-slow">
-                        <img 
-                          src="/zanahoria.png" 
-                          alt="zanahoria" 
-                          className="w-full h-full object-contain opacity-40 rotate-12 hover:rotate-0 transition-transform duration-300" 
-                        />
-                      </div>
-                      <div className="absolute -top-16 right-20 w-16 h-16 animate-float-delayed">
-                        <img 
-                          src="/remolacha.png" 
-                          alt="remolacha" 
-                          className="w-full h-full object-contain opacity-40 -rotate-12 hover:rotate-0 transition-transform duration-300" 
-                        />
-                      </div>
-                      {/* Segunda fila */}
-                      <div className="absolute top-10 -right-32 w-20 h-20 animate-float">
-                        <img 
-                          src="/Auyama.png" 
-                          alt="auyama" 
-                          className="w-full h-full object-contain opacity-40 rotate-6 hover:rotate-0 transition-transform duration-300" 
-                        />
-                      </div>
-                      <div className="absolute top-16 -left-28 w-16 h-16 animate-float-slow">
-                        {/* Espacio para nueva imagen */}
-                      </div>
-                      {/* Tercera fila */}
-                      <div className="absolute bottom-4 -left-24 w-14 h-14 animate-float-delayed">
-                        {/* Espacio para nueva imagen */}
-                      </div>
-                      <div className="absolute bottom-8 -right-28 w-16 h-16 animate-float">
-                        {/* Espacio para nueva imagen */}
-                      </div>
+                      {/* Partículas decorativas eliminadas */}
                       <div className="ml-14 mt-[-200px]">
                         <p className="text-pink-600 font-['Righteous'] tracking-wider uppercase text-2xl md:text-3xl text-center" style={{ animation: 'fadeIn 1s ease-out' }}>VERDU</p>
                         <h1 className="mt-0 text-7xl font-['Pacifico'] text-teal-400 drop-shadow-lg md:text-9xl leading-tight text-center" style={{ animation: 'fadeInUp 1.2s ease-out' }}>
@@ -286,18 +342,30 @@ export default function IceCreamLanding() {
                     </div>
                   </div>
                   <div className="mt-2 flex items-center gap-6 ml-32">
-                    <button className="rounded-full bg-gradient-to-r from-pink-400 to-pink-600 px-6 py-3 text-base font-['Righteous'] text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 hover:from-pink-500 hover:to-pink-700 flex items-center gap-2" style={{ animation: 'fadeInUp 1.8s ease-out' }}>
+                    <a
+                      href="https://www.facebook.com/profile.php?id=100093509873570"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-full bg-gradient-to-r from-pink-400 to-pink-600 px-6 py-3 text-base font-['Righteous'] text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 hover:from-pink-500 hover:to-pink-700 flex items-center gap-2"
+                      style={{ animation: 'fadeInUp 1.8s ease-out' }}
+                    >
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-8h2v2h-2v2h-2v-2H7V8h2V6h2v2z"/>
                       </svg>
                       Facebook
-                    </button>
-                    <button className="rounded-full bg-gradient-to-r from-teal-400 to-teal-600 px-6 py-3 text-base font-['Righteous'] text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 hover:from-teal-500 hover:to-teal-700 flex items-center gap-2" style={{ animation: 'fadeInUp 2s ease-out' }}>
+                    </a>
+                    <a
+                      href="https://www.instagram.com/verduhelados/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-full bg-gradient-to-r from-teal-400 to-teal-600 px-6 py-3 text-base font-['Righteous'] text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 hover:from-teal-500 hover:to-teal-700 flex items-center gap-2"
+                      style={{ animation: 'fadeInUp 2s ease-out' }}
+                    >
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M18 2a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2h12l4 4V2zM5 7h10v2H5V7zm0 4h10v2H5v-2z"/>
                       </svg>
                       Instagram
-                    </button>
+                    </a>
                   </div>
                 </div>
                 {/* HELADOS SUPERIORES */}
@@ -402,36 +470,12 @@ export default function IceCreamLanding() {
                 </span>
               </p>
               
-              {/* Decoración */}
-              <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-16 h-16 opacity-20">
-                <img src="/zanahoria.png" alt="" className="w-full h-full object-contain rotate-45" />
-              </div>
-              <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-16 h-16 opacity-20">
-                <img src="/remolacha.png" alt="" className="w-full h-full object-contain -rotate-45" />
-              </div>
+              {/* Decoración eliminada */}
             </div>
 
             <div className="relative h-[500px] flex items-start justify-between px-8 pt-2">
               <div className="relative w-full h-[320px] flex items-start justify-start pt-0 pl-0" style={{marginTop: '-40px'}}>
-                {/* Fondo decorativo con patrón */}
-                <div className="absolute inset-0 overflow-hidden -z-10">
-                  <div className="absolute inset-0 bg-gradient-to-b from-lime-50/80 to-white/60"></div>
-                  {/* Patrón de círculos */}
-                  <div className="absolute inset-0" style={{
-                    backgroundImage: `
-                      radial-gradient(circle at 20px 20px, rgba(20,184,166,0.1) 2px, transparent 0),
-                      radial-gradient(circle at 40px 40px, rgba(219,39,119,0.1) 2px, transparent 0),
-                      radial-gradient(circle at 60px 60px, rgba(236,252,203,0.3) 4px, transparent 0)
-                    `,
-                    backgroundSize: '60px 60px'
-                  }}></div>
-                  {/* Brillo superior e inferior */}
-                  <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-white/40 to-transparent"></div>
-                  <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-white/40 to-transparent"></div>
-                  {/* Destellos de color */}
-                  <div className="absolute top-20 left-1/4 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl animate-pulse"></div>
-                  <div className="absolute bottom-20 right-1/4 w-40 h-40 bg-pink-400/10 rounded-full blur-3xl animate-pulse"></div>
-                </div>
+                {/* Fondo decorativo con patrón eliminado completamente */}
                 {/* Helado 3D y Carrusel centrados */}
                 <div className="flex flex-col md:flex-row items-center justify-center gap-12 w-full">
                   {/* Helado 3D */}
@@ -531,102 +575,75 @@ export default function IceCreamLanding() {
       </div>
 
       {/* CONTENEDOR DE PRODUCTOS */}
-      <div className="w-full bg-gradient-to-b from-lime-50 via-white to-lime-50 py-6 pb-0">
-        <div className="w-full max-w-[1440px] mx-auto">
-          <div className="text-center mb-16">
-            <div className="relative w-full">
-              {/* Imagen Verdi en diagonal, esquina superior izquierda */}
-              <img
-                src="/verdi.png"
-                alt="Verdi verdulería"
-                className="absolute left-0 top-0 z-30 object-contain drop-shadow-xl"
-        style={{
-          width: "270px",
-          height: "270px",
-          transform: "rotate(-18deg) translate(-30px, -120px)",
-          maxHeight: "270px",
-          filter: "drop-shadow(0 26px 26px rgb(20 184 166 / 0.26))",
-          animation: "verdiFloat 3.2s ease-in-out infinite"
-        }}
-              />
-              <h2 className="text-6xl md:text-7xl font-['Pacifico'] text-teal-400 mb-4 text-right absolute right-0 top-0 flex flex-row-reverse gap-4" style={{maxWidth: '700px'}}>
-              <style>{`
-                @keyframes verdiFloat {
-                  0%, 100% { transform: rotate(-18deg) translate(10px, -190px); }
-                  50% { transform: rotate(-18deg) translate(10px, -210px) scale(1.04); }
-                }
-              `}</style>
-                <span style={{animation: 'slideInRight 0.7s cubic-bezier(0.4,0,0.2,1)'}}>Productos</span>
-                <span style={{animation: 'slideInRight 1.1s cubic-bezier(0.4,0,0.2,1)'}}>Nuestros</span>
-              </h2>
-              <p className="text-pink-600 font-['Righteous'] text-lg text-right absolute right-0 top-24 flex flex-row-reverse gap-2" style={{maxWidth: '700px'}}>
-                <span style={{animation: 'slideInRight 0.8s cubic-bezier(0.4,0,0.2,1)'}}>naturaleza</span>
-                <span style={{animation: 'slideInRight 1.2s cubic-bezier(0.4,0,0.2,1)'}}>de</span>
-                <span style={{animation: 'slideInRight 1.4s cubic-bezier(0.4,0,0.2,1)'}}>sabor</span>
-                <span style={{animation: 'slideInRight 1.6s cubic-bezier(0.4,0,0.2,1)'}}>el</span>
-                <span style={{animation: 'slideInRight 1.8s cubic-bezier(0.4,0,0.2,1)'}}>Descubre</span>
-              </p>
-              <div style={{height: '110px'}}></div>
-              <style>{`
-                @keyframes slideInRight {
-                  0% { opacity: 0; transform: translateX(80px); }
-                  100% { opacity: 1; transform: translateX(0); }
-                }
-              `}</style>
-            </div>
+      <div className="w-full bg-gradient-to-b from-lime-50 via-white to-lime-50 py-6 pb-0 relative">
+      <div className="w-full max-w-[1440px] mx-auto" style={{background: 'none'}}>
+          <div className="mb-10 flex justify-center relative">
+            {/* Imagen Verdi decorativa en la esquina inferior izquierda, más grande y animada */}
+            <img
+              src="/verdi.png"
+              alt="Verdi decorativo"
+              className="absolute left-0 bottom-0 z-20 pointer-events-none animate-verdiFloat"
+              style={{
+                width: '180px',
+                height: '180px',
+                transform: 'rotate(-18deg) translate(-32px, 24px) skewY(-8deg)',
+                opacity: 0.97,
+                filter: 'drop-shadow(0 18px 36px rgba(20,184,166,0.22))'
+              }}
+            />
+            {/* Eliminado el óvalo verde decorativo extra */}
+            <h2 className="text-4xl md:text-5xl font-['Pacifico'] text-pink-600 text-center drop-shadow-xl mb-8">Nuestros productos</h2>
           </div>
-          <style>{`
-            @keyframes flipIn {
-              0% { transform: rotateY(90deg) scale(0.8); opacity: 0; }
-              60% { transform: rotateY(-10deg) scale(1.05); opacity: 1; }
-              100% { transform: rotateY(0deg) scale(1); opacity: 1; }
-            }
-            @keyframes iconPulse {
-              0%, 100% { transform: scale(1); }
-              50% { transform: scale(1.18); }
-            }
-            @keyframes iconJumpSpin {
-              0% { transform: scale(1) rotate(0deg); }
-              30% { transform: scale(1.2) translateY(-18px) rotate(20deg); }
-              60% { transform: scale(1.1) translateY(-8px) rotate(-20deg); }
-              100% { transform: scale(1) rotate(0deg); }
-            }
-            @keyframes cardRotate {
-              0% { transform: rotateY(0deg) scale(1); }
-              100% { transform: rotateY(8deg) scale(1.04); }
-            }
-          `}</style>
           <div className="flex flex-wrap items-stretch justify-center gap-4 md:gap-0 max-w-5xl mx-auto px-2 md:px-0">
-            {[
-              {
-                title: "Helado Natural",
-                description: "Sin conservantes artificiales",
-                icon: "🌿"
-              },
-              {
-                title: "100% Vegetales",
-                description: "Del campo a tu paladar",
-                icon: "🥕"
-              },
-              {
-                title: "Sabor Único",
-                description: "Una experiencia diferente",
-                icon: "✨"
-              },
-              {
-                title: "Sin Azúcar",
-                description: "Endulzado naturalmente",
-                icon: "🍯"
-              }
-            ].map((item, i) => (
+            {/* Formulario para agregar productos, solo visible para admin */}
+            {isAdmin && (
+              <form className="w-full max-w-xl mx-auto mb-8 p-6 bg-white rounded-2xl shadow-xl flex flex-col gap-4" onSubmit={async e => {
+                e.preventDefault();
+                const form = e.target as HTMLFormElement;
+                const title = (form.elements.namedItem('title') as HTMLInputElement).value;
+                const description = (form.elements.namedItem('description') as HTMLInputElement).value;
+                const fileInput = form.elements.namedItem('image') as HTMLInputElement;
+                const file = fileInput.files && fileInput.files[0];
+                if (title && description && file) {
+                  const formData = new FormData();
+                  formData.append('title', title);
+                  formData.append('description', description);
+                  formData.append('image', file);
+                  try {
+                const res = await fetch('http://localhost:4000/api/productos', {
+                  method: 'POST',
+                  body: formData
+                });
+                    if (res.ok) {
+                      const data = await res.json();
+                      // Espera que el backend devuelva { title, description, image }
+                      setProducts(prev => [...prev, data]);
+                      form.reset();
+                    } else {
+                      alert('Error al guardar el producto');
+                    }
+                  } catch (err) {
+                    alert('Error de red al guardar el producto');
+                  }
+                }
+              }}>
+                <h3 className="text-2xl font-['Pacifico'] text-teal-400 mb-2">Agregar producto</h3>
+                <input name="title" type="text" placeholder="Nombre del producto" className="border rounded-lg px-4 py-2" required />
+                <input name="description" type="text" placeholder="Descripción" className="border rounded-lg px-4 py-2" required />
+                <input name="image" type="file" accept="image/*" className="border rounded-lg px-4 py-2" required />
+                <button type="submit" className="rounded-full bg-gradient-to-r from-teal-400 to-pink-400 px-6 py-2 text-white font-bold shadow-lg hover:scale-105 transition-all">Agregar</button>
+              </form>
+            )}
+            {products.map((item, i) => (
               <article
-                key={i}
+                key={item._id ?? i}
                 className={`relative rounded-3xl bg-white shadow-2xl ring-2 ring-teal-100 px-10 py-12 flex flex-col items-center transition-all duration-500 hover:ring-pink-200 z-10 group ${i % 2 === 0 ? 'md:-mt-12' : 'md:mt-12'}`}
                 style={{
                   animation: `flipIn 1s cubic-bezier(0.4,0,0.2,1) ${i * 0.2 + 0.2}s both`,
                   marginLeft: i === 1 ? '-40px' : undefined,
                   marginRight: i === 1 ? '-40px' : undefined,
                   transition: 'transform 0.5s cubic-bezier(0.4,0,0.2,1)',
+                  marginBottom: '48px', // separa del final del contenedor
                 }}
                 onMouseEnter={e => e.currentTarget.style.transform = 'rotateY(8deg) scale(1.04)'}
                 onMouseLeave={e => e.currentTarget.style.transform = 'rotateY(0deg) scale(1)'}
@@ -638,18 +655,17 @@ export default function IceCreamLanding() {
                   </svg>
                 )}
                 <div className="mb-6 h-32 w-32 flex items-center justify-center rounded-full bg-gradient-to-br from-teal-50 to-lime-50 shadow-lg">
-                  <span 
-                    className="text-6xl group-hover:animate-[iconJumpSpin_0.7s]"
-                    style={{animation: 'iconPulse 2s infinite'}}
-                  >{item.icon}</span>
+                  {item.image && (
+                    <img src={`http://localhost:4000${item.image}`} alt={item.title} className="w-full h-full object-contain rounded-full" />
+                  )}
                 </div>
                 <h3 className="text-center text-2xl font-['Righteous'] text-pink-600 mb-3">{item.title}</h3>
                 <p className="text-center text-base text-teal-600 font-['Righteous'] mb-6">
                   {item.description}
                 </p>
-                <button className="rounded-full bg-gradient-to-r from-teal-400 to-teal-500 px-8 py-3 text-base font-['Righteous'] text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 hover:bg-pink-400">
-                  Descubrir
-                </button>
+                <button className="rounded-full bg-gradient-to-r from-teal-400 to-teal-500 px-8 py-3 text-base font-['Righteous'] text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 hover:bg-pink-400"
+                  onClick={() => addToCart(item.title)}
+                >Añadir al carrito</button>
               </article>
             ))}
           </div>
